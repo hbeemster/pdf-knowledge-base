@@ -1,0 +1,23 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/.gitignore
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/pdf-knowledge-base.iml
+/.idea/vcs.xml
+/logs/
+/.idea/dataSources/12a40e98-cfe6-4f94-9de7-971dbd2894c6/storage_v2/_src_/schema/main.uQUzAA.meta
+/.idea/dataSources/12a40e98-cfe6-4f94-9de7-971dbd2894c6.xml
+/.idea/dataSources/data_sources_history.xml
+/.idea/dataSources.local.xml
+/.idea/dataSources.xml
