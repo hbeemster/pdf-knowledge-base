@@ -86,7 +86,7 @@ def objective(trial: Trial):
 # ------------------------------------------------------------------------
 def optimize():
     """Optimize RAG with Optuna."""
-    study_name = "optimize-rag-4"  # Unique identifier of the study.
+    study_name = "optimize-rag-5"  # Unique identifier of the study.
     database_name =f"{OPTUNA_FOLDER}/{study_name}.db"
     storage = f"sqlite:///{database_name}"
     study = optuna.create_study(
@@ -101,6 +101,20 @@ def optimize():
     study.optimize(objective, n_trials=5)
     logger.info(study.best_params)
 
+# ------------------------------------------------------------------------
+def optimize_mp():
+    from multiprocessing import Process
+    processes = [Process(target=optimize) for _ in range(4)]
 
+    for p in processes:
+        p.start()
+    for p in processes:
+        p.join()
+
+# ------------------------------------------------------------------------
 if __name__ == "__main__":
-    optimize()
+    # optimize()
+    optimize_mp()
+
+
+
