@@ -86,7 +86,7 @@ def objective(trial: Trial):
 # ------------------------------------------------------------------------
 def optimize():
     """Optimize RAG with Optuna."""
-    study_name = "optimize-rag-3"  # Unique identifier of the study.
+    study_name = "optimize-rag-4"  # Unique identifier of the study.
     database_name =f"{OPTUNA_FOLDER}/{study_name}.db"
     storage = f"sqlite:///{database_name}"
     study = optuna.create_study(
@@ -98,7 +98,7 @@ def optimize():
     tmpdir = str(CHROMA_FOLDER / f"{study_name}-{datetime.now().strftime('%Y%m%d-%H%M%S')}")
     study.set_user_attr("tmp_chroma_path", tmpdir)
 
-    study.optimize(objective, n_trials=15)
+    study.optimize(objective, n_trials=5)
     logger.info(study.best_params)
 
 
