@@ -8,5 +8,5 @@ https://dl.acm.org/loi/cacm/group/d2020.y2026
 # optuna-dashboard
 
 ```commandline
-uv run optuna-dashboard sqlite:///.\data\optuna\optimize-rag-3.db --port 8082~~~~
+uv run optuna-dashboard sqlite:///.\data\optuna\optimize-rag-3.db --port 8082
 ```
