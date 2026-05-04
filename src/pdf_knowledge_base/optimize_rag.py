@@ -1,13 +1,25 @@
 """Optimize RAG with Optuna."""
+
+import os
+import time
 from datetime import datetime
+from multiprocessing import Pool
 
 import optuna
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from loguru import logger
-from optuna import Trial
+from optuna import Trial, Study
+from optuna.storages import JournalStorage
+from optuna.storages.journal import JournalFileBackend
 
-from pdf_knowledge_base.constants import PDF_EXAMPLE, EMBEDDINGS_FOLDER, CHROMA_FOLDER, OPTUNA_FOLDER
+from pdf_knowledge_base.constants import (
+    PDF_EXAMPLE,
+    EMBEDDINGS_FOLDER,
+    CHROMA_FOLDER,
+    OPTUNA_FOLDER,
+    StorageType,
+)
 from pdf_knowledge_base.ingest import pdf_to_documents, split_documents
 
 optuna.logging.enable_propagation()
@@ -20,14 +32,6 @@ embeddings = HuggingFaceEmbeddings(
     encode_kwargs={"normalize_embeddings": True},
     cache_folder=str(EMBEDDINGS_FOLDER / "optuna"),
 )
-# vector_store = InMemoryVectorStore(embeddings)
-
-# vector_store = Chroma(
-#     collection_name="example_collection",
-#     embedding_function=embeddings,
-#     persist_directory=str(CHROMA_FOLDER / "optuna"),
-# )
-#
 
 queries = [
     "In what way can anthropologists bring value to software engineering and computer science?",
@@ -37,7 +41,7 @@ queries = [
 
 def objective(trial: Trial):
     """RAG with Optuna."""
-    logger.info(f"Start trial: {trial.number}")
+    logger.info(f"Start trial: {1 + trial.number}")
     documents = pdf_to_documents(PDF_EXAMPLE)
 
     # Set up trial parameters
@@ -54,7 +58,7 @@ def objective(trial: Trial):
     )
 
     param_desc = f"{trial.number}-{chunk_size}-{chunk_overlap}"
-    chroma_dir = f"{trial.study.user_attrs["tmp_chroma_path"]}/{param_desc}"
+    chroma_dir = f"{trial.study.user_attrs['chroma_path']}/{param_desc}"
     vector_store = Chroma(
         collection_name=param_desc,
         embedding_function=embeddings,
@@ -71,50 +75,69 @@ def objective(trial: Trial):
         )
 
         doc, score = docs_and_scores[0]
-        logger.info(
-            f"Source: {doc.metadata['source']}, page_label: {doc.metadata['page_label']}"
-        )
-        logger.info(f"Score: {score}")
         total_score += score
 
     # average score
     avg_score = total_score / len(queries)
-    logger.info(f"Avg score: {avg_score}")
     return avg_score
 
 
 # ------------------------------------------------------------------------
-def optimize():
+def optimize(study_name: str, storage: JournalStorage, n_trials: int = 3) -> None:
     """Optimize RAG with Optuna."""
-    study_name = "optimize-rag-6"  # Unique identifier of the study.
-    database_name =f"{OPTUNA_FOLDER}/{study_name}.db"
-    storage = f"sqlite:///{database_name}"
     study = optuna.create_study(
         storage=storage,
         study_name=study_name,
         direction="maximize",
         load_if_exists=True,
     )
-    tmpdir = str(CHROMA_FOLDER / f"{study_name}-{datetime.now().strftime('%Y%m%d-%H%M%S')}")
-    study.set_user_attr("tmp_chroma_path", tmpdir)
+    tmpdir = str(CHROMA_FOLDER / f"{study_name}")
+    study.set_user_attr("chroma_path", tmpdir)
 
-    study.optimize(objective, n_trials=50)
-    logger.info(study.best_params)
+    study.optimize(objective, n_trials=n_trials)
+
 
 # ------------------------------------------------------------------------
-def optimize_mp():
-    from multiprocessing import Process
-    processes = [Process(target=optimize) for _ in range(4)]
+def run_optimizer(
+    study_name,
+    n_processes: int = None,
+    n_trials: int = 3,
+    storage_type: StorageType = StorageType.JOURNAL,
+):
 
-    for p in processes:
-        p.start()
-    for p in processes:
-        p.join()
+    if n_processes is None:
+        n_processes = os.cpu_count() or 1
+    n_processes = min(n_processes, n_trials)
+
+    base, remainder = divmod(n_trials, n_processes)
+    trials_list = [base + 1 if n < remainder else base for n in range(n_processes)]
+
+    if storage_type == StorageType.JOURNAL:
+        file_path = f"{OPTUNA_FOLDER}/{study_name}-journal.log"
+        lock_obj = optuna.storages.journal.JournalFileOpenLock(file_path)
+        storage = JournalStorage(
+            JournalFileBackend(file_path=file_path, lock_obj=lock_obj)
+        )
+    else:
+        raise ValueError(f"Unsupported storage type: {storage_type}")
+
+    start_time = time.time()
+    with Pool(processes=n_processes) as pool:
+        pool.starmap(
+            optimize, [(study_name, storage, trials) for trials in trials_list]
+        )
+    elapsed = time.time() - start_time
+
+    logger.info(75 * "=")
+    study = optuna.load_study(study_name=study_name, storage=storage)
+    logger.info(
+        f"Best result with value {study.best_trial.value} and params {study.best_params}"
+    )
+    logger.info(f"Total run time: {elapsed:.2f}s")
+    logger.info(75 * "=")
+
 
 # ------------------------------------------------------------------------
 if __name__ == "__main__":
-    optimize()
-    # optimize_mp()
-
-
-
+    # optimize()
+    run_optimizer(study_name="optimize-rag-4", n_trials=50)
