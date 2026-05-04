@@ -1,4 +1,5 @@
 """Constants."""
+
 from enum import StrEnum
 from pathlib import Path
 
@@ -19,6 +20,7 @@ OPTUNA_FOLDER = DATA_FOLDER / "optuna"
 PDF_FOLDER.mkdir(parents=True, exist_ok=True)
 JSON_FOLDER.mkdir(parents=True, exist_ok=True)
 EMBEDDINGS_FOLDER.mkdir(parents=True, exist_ok=True)
+
 
 # ------------------------------------------------------------------------
 # Enums
