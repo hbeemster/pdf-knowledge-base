@@ -12,5 +12,6 @@ format:
 check:
     uv run ruff check --fix
 
+# start optuna dashboard
 dashboard:
     wt -- uv run optuna-dashboard ./data/optuna/journal.log
