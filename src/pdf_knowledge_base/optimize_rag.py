@@ -2,14 +2,13 @@
 
 import os
 import time
-from datetime import datetime
 from multiprocessing import Pool
 
 import optuna
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from loguru import logger
-from optuna import Trial, Study
+from optuna import Trial
 from optuna.storages import JournalStorage
 from optuna.storages.journal import JournalFileBackend
 

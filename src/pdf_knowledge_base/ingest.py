@@ -15,8 +15,6 @@ from langchain_chroma import Chroma
 from loguru import logger
 
 from pdf_knowledge_base.constants import (
-    PROJECT_ROOT,
-    PDF_FOLDER,
     PDF_EXAMPLE,
     JSON_FOLDER,
     EMBEDDINGS_FOLDER,
@@ -70,6 +68,7 @@ def pdf_to_documents(pdf_file: Path, json_folder: Path = JSON_FOLDER) -> List[Do
             docs = [Document(**d) for d in json.load(f)]
     else:
         from langchain_community.document_loaders import PyPDFLoader
+
         logger.debug("Load PDF")
         loader = PyPDFLoader(pdf_file)
         docs = loader.load()

@@ -9,4 +9,3 @@ logger.add(
     retention="5 days",
 )
 logger.info("logger initialized")
-
