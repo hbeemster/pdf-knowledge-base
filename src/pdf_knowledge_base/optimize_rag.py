@@ -101,9 +101,7 @@ def run_optimizer(
     study_name,
     n_processes: int = None,
     n_trials: int = 3,
-    storage_type: StorageType = StorageType.JOURNAL,
 ):
-
     if n_processes is None:
         n_processes = os.cpu_count() or 1
     n_processes = min(n_processes, n_trials)
@@ -111,14 +109,11 @@ def run_optimizer(
     base, remainder = divmod(n_trials, n_processes)
     trials_list = [base + 1 if n < remainder else base for n in range(n_processes)]
 
-    if storage_type == StorageType.JOURNAL:
-        file_path = f"{OPTUNA_FOLDER}/{study_name}-journal.log"
-        lock_obj = optuna.storages.journal.JournalFileOpenLock(file_path)
-        storage = JournalStorage(
-            JournalFileBackend(file_path=file_path, lock_obj=lock_obj)
-        )
-    else:
-        raise ValueError(f"Unsupported storage type: {storage_type}")
+    file_path = f"{OPTUNA_FOLDER}/journal.log"
+    lock_obj = optuna.storages.journal.JournalFileOpenLock(file_path)
+    storage = JournalStorage(
+        JournalFileBackend(file_path=file_path, lock_obj=lock_obj)
+    )
 
     start_time = time.time()
     with Pool(processes=n_processes) as pool:
@@ -137,6 +132,22 @@ def run_optimizer(
 
 
 # ------------------------------------------------------------------------
+def cli_optimize():
+    """CLI entry point for run_optimizer."""
+    import typer
+    from typing import Optional
+
+    def _main(
+        study_name: str,
+        n_trials: int = typer.Option(3, help="Number of trials"),
+        n_processes: Optional[int] = typer.Option(None, help="Parallel processes (default: cpu count)"),
+    ):
+        run_optimizer(study_name=study_name, n_trials=n_trials, n_processes=n_processes)
+
+    typer.run(_main)
+
+
+# ------------------------------------------------------------------------
 if __name__ == "__main__":
     # optimize()
-    run_optimizer(study_name="optimize-rag-4", n_trials=50)
+    run_optimizer(study_name="optimize-rag", n_trials=2)

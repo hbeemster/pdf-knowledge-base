@@ -1870,6 +1870,7 @@ dependencies = [
     { name = "optuna-dashboard" },
     { name = "pypdf" },
     { name = "sentence-transformers" },
+    { name = "typer" },
 ]
 
 [package.dev-dependencies]
@@ -1889,6 +1890,7 @@ requires-dist = [
     { name = "optuna-dashboard", specifier = ">=0.20.0" },
     { name = "pypdf", specifier = ">=6.9.2" },
     { name = "sentence-transformers", specifier = ">=5.3.0" },
+    { name = "typer", specifier = ">=0.15.0" },
 ]
 
 [package.metadata.requires-dev]

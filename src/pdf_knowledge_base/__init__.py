@@ -1,4 +1,4 @@
-from constants import PROJECT_ROOT
+from .constants import PROJECT_ROOT
 
 
 from loguru import logger

@@ -17,10 +17,12 @@ dependencies = [
     "optuna-dashboard>=0.20.0",
     "pypdf>=6.9.2",
     "sentence-transformers>=5.3.0",
+    "typer>=0.15.0",
 ]
 
 [project.scripts]
 pdf-knowledge-base = "pdf_knowledge_base:main"
+rag-optimizer = "pdf_knowledge_base.optimize_rag:cli_optimize"
 
 [build-system]
 requires = ["uv_build>=0.8.14,<0.9.0"]
